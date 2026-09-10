@@ -1,26 +1,26 @@
-from PIL import Image  # Import Image module
+from PIL import Image
+
 
 def to_str(binary_data):
-    """Convert binary data back to string"""
-    chars = [binary_data[i:i+8] for i in range(0, len(binary_data), 8)]
-    return ''.join(chr(int(char, 2)) for char in chars)
+    """Convert complete 8-bit binary groups into a UTF-8 string."""
+    raw = bytearray()
+    for index in range(0, len(binary_data) - 7, 8):
+        value = int(binary_data[index:index + 8], 2)
+        if value == 0:
+            break
+        raw.append(value)
+    return raw.decode('utf-8', errors='replace')
+
 
 def extract_lsb(image_path):
-    """Extract message from the least significant bit of the image"""
-    # Open the image
-    image = Image.open(image_path)
+    """Extract a null-delimited UTF-8 message from RGB image LSBs."""
+    image = Image.open(image_path).convert('RGB')
     pixels = image.load()
+    binary_data = []
 
-    # Extract binary data from image
-    binary_data = ""
     for y in range(image.height):
         for x in range(image.width):
-            pixel = list(pixels[x, y])  # Get the RGB values of the pixel
-            for i in range(3):  # Loop over R, G, B channels
-                binary_data += str(pixel[i] & 1)  # Extract the LSB
+            pixel = pixels[x, y]
+            binary_data.extend(str(pixel[channel] & 1) for channel in range(3))
 
-    # Convert binary data back to string
-    message = to_str(binary_data)
-
-    # Find the null byte (special delimiter) to know where the message ends
-    return message.split("\x00")[0]  # Return the message before the null byte
+    return to_str(''.join(binary_data))
