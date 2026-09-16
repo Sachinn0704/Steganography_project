@@ -42,6 +42,11 @@ def run():
         print("🔍 Extracting message from image...")
         recovered_message = extract_lsb("stego.png")
         print(f"🔍 Recovered message: {recovered_message}")
+
+        if recovered_message != message:
+            raise ValueError("Integrity check failed: recovered message does not match the original")
+
+        print("✅ Integrity check passed: recovered message matches the original")
     except Exception as e:
         print(f"Error during embedding or extraction: {str(e)}")
 
