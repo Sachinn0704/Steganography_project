@@ -31,6 +31,22 @@ class TestSteganography(unittest.TestCase):
             with self.assertRaises(ValueError):
                 embed_lsb(cover, "this message cannot fit", stego)
 
+    def test_payload_capacity_boundary(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            cover = Path(tmp) / "cover.png"
+            stego = Path(tmp) / "stego.png"
+            self.create_cover(cover)
+
+            # A 16x16 RGB image has 768 LSBs. One byte is reserved for
+            # the null delimiter, so 95 ASCII bytes is the largest payload.
+            message = "A" * 95
+            embed_lsb(cover, message, stego)
+
+            self.assertEqual(extract_lsb(stego), message)
+
+            with self.assertRaises(ValueError):
+                embed_lsb(cover, "B" * 96, stego)
+
     def test_extraction_from_unmodified_image_returns_no_payload(self):
         with tempfile.TemporaryDirectory() as tmp:
             cover = Path(tmp) / "cover.png"
