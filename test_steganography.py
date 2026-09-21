@@ -47,6 +47,22 @@ class TestSteganography(unittest.TestCase):
             with self.assertRaises(ValueError):
                 embed_lsb(cover, "B" * 96, stego)
 
+    def test_capacity_is_measured_in_utf8_bytes(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            cover = Path(tmp) / "cover.png"
+            stego = Path(tmp) / "stego.png"
+            self.create_cover(cover)
+
+            # Each character below occupies three UTF-8 bytes. Forty-two
+            # characters therefore fit (126 bytes + 1-byte delimiter), while
+            # forty-three characters require 130 bytes and must be rejected.
+            message = "界" * 42
+            embed_lsb(cover, message, stego)
+            self.assertEqual(extract_lsb(stego), message)
+
+            with self.assertRaises(ValueError):
+                embed_lsb(cover, "界" * 43, stego)
+
     def test_extraction_from_unmodified_image_returns_no_payload(self):
         with tempfile.TemporaryDirectory() as tmp:
             cover = Path(tmp) / "cover.png"
