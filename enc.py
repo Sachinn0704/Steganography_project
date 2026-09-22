@@ -6,6 +6,15 @@ def to_bin(text):
     return ''.join(format(byte, '08b') for byte in text.encode('utf-8'))
 
 
+def get_payload_capacity(image):
+    """Return the maximum UTF-8 payload size in bytes for an RGB image.
+
+    One byte of capacity is reserved for the null-byte delimiter used by
+    extraction, so the returned value is the safe message limit.
+    """
+    return max(0, (image.width * image.height * 3) // 8 - 1)
+
+
 def embed_lsb(cover_image, message, output_image):
     """Embed a UTF-8 message in the RGB least significant bits of an image."""
     image = Image.open(cover_image).convert('RGB')
@@ -13,7 +22,7 @@ def embed_lsb(cover_image, message, output_image):
     capacity = image.width * image.height * 3
 
     if len(binary_message) > capacity:
-        max_bytes = max(0, capacity // 8 - 1)
+        max_bytes = get_payload_capacity(image)
         raise ValueError(
             f"Message is too large for this image. Maximum payload is about {max_bytes} bytes."
         )
