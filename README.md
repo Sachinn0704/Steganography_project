@@ -4,7 +4,20 @@ A Python project demonstrating digital-image steganography: hiding secret inform
 
 ## Project Summary
 
-The project explores the basic concept of hiding text or files inside digital media, primarily images. Steganography focuses on concealing the existence of information rather than simply encrypting its contents.
+The implementation hides a UTF-8 text message inside the least significant bits (LSBs) of an RGB image. Steganography focuses on concealing the existence of information rather than simply encrypting its contents.
+
+## Core Workflow
+
+1. Convert the secret message to UTF-8 bytes and binary bits.
+2. Append a null-byte delimiter to mark the end of the payload.
+3. Replace one least significant bit from each RGB channel with a payload bit.
+4. Save the modified image as the stego-image.
+5. Read the RGB LSBs back during extraction and decode the recovered bytes as UTF-8.
+6. Compare the extracted message with the original to verify integrity.
+
+## Capacity and Validation
+
+Each RGB pixel provides three payload bits. The implementation reserves eight bits for the null delimiter, so the safe payload limit is approximately `floor(width × height × 3 / 8) - 1` UTF-8 bytes. Capacity is measured using encoded byte length rather than Python character count, which correctly handles non-ASCII text.
 
 ## Core Concept
 
